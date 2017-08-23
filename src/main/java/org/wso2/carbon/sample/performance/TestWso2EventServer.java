@@ -37,6 +37,7 @@ import org.wso2.carbon.databridge.core.internal.authentication.AuthenticationHan
 import org.wso2.carbon.databridge.receiver.binary.conf.BinaryDataReceiverConfiguration;
 import org.wso2.carbon.databridge.receiver.binary.internal.BinaryDataReceiver;
 import org.wso2.carbon.databridge.receiver.thrift.ThriftDataReceiver;
+import org.wso2.carbon.sample.performance.feedbackclient.TCPClient;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.IOException;
@@ -46,15 +47,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class TestWso2EventServer {
+    private static final TestWso2EventServer testServer = new TestWso2EventServer();
     private static Log log = LogFactory.getLog(TestWso2EventServer.class);
     private ThriftDataReceiver thriftDataReceiver;
     private BinaryDataReceiver binaryDataReceiver;
     private AtomicLong counter = new AtomicLong(0);
     private AbstractStreamDefinitionStore streamDefinitionStore = new InMemoryStreamDefinitionStore();
-    private static final TestWso2EventServer testServer = new TestWso2EventServer();
-
 
     public static void main(String[] args) throws DataBridgeException, StreamDefinitionStoreException {
+
+//      Start feedback client
+        TCPClient tcpClient = new TCPClient("localhost", 6789);
+        tcpClient.sendMsg("FEED BACK FROM CONSUMER..................");
+
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -66,6 +71,7 @@ public class TestWso2EventServer {
             }
         });
         log.info("Shutdown hook added.");
+
         testServer.start(args[0], Integer.parseInt(args[1]), args[2], Integer.parseInt(args[3]), args[4]);
         synchronized (testServer) {
             try {
@@ -74,6 +80,8 @@ public class TestWso2EventServer {
                 //ignore
             }
         }
+
+
     }
 
 
@@ -134,6 +142,16 @@ public class TestWso2EventServer {
             thriftDataReceiver.start(host);
         }
         log.info("Test Server Started");
+    }
+
+    public void stop() {
+        if (thriftDataReceiver != null) {
+            thriftDataReceiver.stop();
+        }
+        if (binaryDataReceiver != null) {
+            binaryDataReceiver.stop();
+        }
+        log.info("Test Server Stopped");
     }
 
     class ThroughputAgentCallback implements AgentCallback {
@@ -331,15 +349,5 @@ public class TestWso2EventServer {
                 }
             }
         }
-    }
-
-    public void stop() {
-        if (thriftDataReceiver != null) {
-            thriftDataReceiver.stop();
-        }
-        if (binaryDataReceiver != null) {
-            binaryDataReceiver.stop();
-        }
-        log.info("Test Server Stopped");
     }
 }
