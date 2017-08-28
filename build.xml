@@ -53,6 +53,12 @@
             <include name="axiom_*.jar"/>
             <include name="org.wso2.securevault_*.jar"/>
             <include name="org.wso2.carbon.identity.authentication_*.jar"/>
+            <include name="siddhi-core_3.1.2.jar"/>
+            <include name="siddhi-query-api_3.1.2.jar"/>
+            <include name="siddhi-query-compiler_3.1.2.jar"/>
+            <include name="disruptor_3.3.2.wso2v2.jar"/>
+            <include name="antlr-runtime_3.2.0.wso2v1.jar"/>
+            <include name="org.antlr.antlr4-runtime-osgi_4.5.0.jar"/>
         </fileset>
     </path>
 

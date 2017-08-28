@@ -37,6 +37,8 @@ import org.wso2.carbon.databridge.core.internal.authentication.AuthenticationHan
 import org.wso2.carbon.databridge.receiver.binary.conf.BinaryDataReceiverConfiguration;
 import org.wso2.carbon.databridge.receiver.binary.internal.BinaryDataReceiver;
 import org.wso2.carbon.databridge.receiver.thrift.ThriftDataReceiver;
+import org.wso2.carbon.sample.performance.feedback.Constants;
+import org.wso2.carbon.sample.performance.feedback.SiddhiHandler;
 import org.wso2.carbon.sample.performance.feedback.TCPClient;
 import org.wso2.carbon.user.api.UserStoreException;
 
@@ -58,7 +60,7 @@ public class TestWso2EventServer {
     public static void main(String[] args) throws DataBridgeException, StreamDefinitionStoreException {
 
 //      Start feedback client
-//        tcpClient = new TCPClient("localhost", 6789);
+//        tcpClient = new TCPClient("localhost", Constants.TCP_PORT);
 //        tcpClient.sendMsg(213214);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -91,7 +93,8 @@ public class TestWso2EventServer {
             }
         }).start();
 
-
+//      test siddhi queries
+        new SiddhiHandler().start();
     }
 
 
@@ -223,7 +226,7 @@ public class TestWso2EventServer {
                             decimalFormat.format(localTotalDelay / (double) currentWindowEventsReceived);
                     log.info(info);
 
-                    new TCPClient("localhost", 6789).sendMsg(
+                    new TCPClient(Constants.TCP_HOST, Constants.TCP_PORT).sendMsg(
                             "FEEDBACK FROM CONSUMER : ThroughputAgentCallback : " + info);
 
                     totalDelay.addAndGet(-localTotalDelay);
@@ -296,7 +299,7 @@ public class TestWso2EventServer {
 
                     log.info(info);
 
-                    new TCPClient("localhost", 6789).sendMsg(
+                    new TCPClient(Constants.TCP_HOST, Constants.TCP_PORT).sendMsg(
                             "FEEDBACK FROM CONSUMER : LatencyAgentCallback : " + info);
 
 
@@ -371,7 +374,7 @@ public class TestWso2EventServer {
 
                         log.info(info);
 
-                        new TCPClient("localhost", 6789).sendMsg(
+                        new TCPClient(Constants.TCP_HOST, Constants.TCP_PORT).sendMsg(
                                 "FEEDBACK FROM CONSUMER : RawDataLatencyAgentCallback : " + info);
 
                         maxLatency.set(0);
