@@ -37,7 +37,7 @@ import org.wso2.carbon.databridge.core.internal.authentication.AuthenticationHan
 import org.wso2.carbon.databridge.receiver.binary.conf.BinaryDataReceiverConfiguration;
 import org.wso2.carbon.databridge.receiver.binary.internal.BinaryDataReceiver;
 import org.wso2.carbon.databridge.receiver.thrift.ThriftDataReceiver;
-import org.wso2.carbon.sample.performance.feedbackclient.TCPClient;
+import org.wso2.carbon.sample.performance.feedback.TCPClient;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.IOException;
@@ -49,6 +49,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class TestWso2EventServer {
     private static final TestWso2EventServer testServer = new TestWso2EventServer();
     private static Log log = LogFactory.getLog(TestWso2EventServer.class);
+    private static TCPClient tcpClient;
     private ThriftDataReceiver thriftDataReceiver;
     private BinaryDataReceiver binaryDataReceiver;
     private AtomicLong counter = new AtomicLong(0);
@@ -57,8 +58,8 @@ public class TestWso2EventServer {
     public static void main(String[] args) throws DataBridgeException, StreamDefinitionStoreException {
 
 //      Start feedback client
-        TCPClient tcpClient = new TCPClient("localhost", 6789);
-        tcpClient.sendMsg("FEED BACK FROM CONSUMER..................");
+//        tcpClient = new TCPClient("localhost", 6789);
+//        tcpClient.sendMsg(213214);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -71,15 +72,24 @@ public class TestWso2EventServer {
             }
         });
         log.info("Shutdown hook added.");
-
-        testServer.start(args[0], Integer.parseInt(args[1]), args[2], Integer.parseInt(args[3]), args[4]);
-        synchronized (testServer) {
-            try {
-                testServer.wait();
-            } catch (InterruptedException ignored) {
-                //ignore
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    testServer.start(args[0], Integer.parseInt(args[1]), args[2], Integer.parseInt(args[3]), args[4]);
+                } catch (DataBridgeException e) {
+                    log.error("Error");
+                } catch (StreamDefinitionStoreException e) {
+                }
+                synchronized (testServer) {
+                    try {
+                        testServer.wait();
+                    } catch (InterruptedException ignored) {
+                        //ignore
+                    }
+                }
             }
-        }
+        }).start();
 
 
     }
@@ -179,8 +189,9 @@ public class TestWso2EventServer {
 
         @Override
         public void receive(List<Event> eventList, Credentials credentials) {
+
             try {
-                Thread.currentThread().sleep(10000);
+                Thread.currentThread().sleep(1000);
             } catch (Exception e) {
 
             }
@@ -205,9 +216,16 @@ public class TestWso2EventServer {
                     long elapsedTime = currentTime - lastTime.getAndSet(currentTime);
                     double throughputPerSecond = (((double) currentWindowEventsReceived) / elapsedTime) * 1000;
 
-                    log.info("[" + Thread.currentThread().getName() + "] Received " + currentWindowEventsReceived + " sensor events in " + elapsedTime
+                    String info = "[" + Thread.currentThread().getName() + "] Received " + currentWindowEventsReceived +
+                            " sensor events in " + elapsedTime
                             + " milliseconds with total throughput of " + decimalFormat.format(throughputPerSecond)
-                            + " events per second. Average delay is " + decimalFormat.format(localTotalDelay / (double) currentWindowEventsReceived));
+                            + " events per second. Average delay is " +
+                            decimalFormat.format(localTotalDelay / (double) currentWindowEventsReceived);
+                    log.info(info);
+
+                    new TCPClient("localhost", 6789).sendMsg(
+                            "FEEDBACK FROM CONSUMER : ThroughputAgentCallback : " + info);
+
                     totalDelay.addAndGet(-localTotalDelay);
                     calcInProgress.set(false);
                 }
@@ -271,9 +289,17 @@ public class TestWso2EventServer {
                     lastIndex.set(index);
                     long currentWindowEventsReceived = localCounter - lastCounter.getAndSet(localCounter);
                     long elapsedTime = currentTime - lastTime.getAndSet(currentTime);
-                    log.info("Received " + currentWindowEventsReceived + " events in " + elapsedTime + " ms; Latency - Avg: "
+
+                    String info = "Received " + currentWindowEventsReceived + " events in " + elapsedTime + " ms; Latency - Avg: "
                             + decimalFormat.format(localTotalDelay / (double) currentWindowEventsReceived)
-                            + ", Min: " + minLatency.get() + ", Max: " + maxLatency.get());
+                            + ", Min: " + minLatency.get() + ", Max: " + maxLatency.get();
+
+                    log.info(info);
+
+                    new TCPClient("localhost", 6789).sendMsg(
+                            "FEEDBACK FROM CONSUMER : LatencyAgentCallback : " + info);
+
+
                     maxLatency.set(0);
                     minLatency.set(Long.MAX_VALUE);
                     totalDelay.addAndGet(-localTotalDelay);
@@ -338,9 +364,16 @@ public class TestWso2EventServer {
                         lastIndex.set(index);
                         long currentWindowEventsReceived = localCounter - lastCounter.getAndSet(localCounter);
                         long elapsedTime = currentTime - lastTime.getAndSet(currentTime);
-                        log.info("Received " + currentWindowEventsReceived + " events in " + elapsedTime + " ms; Latency - Avg: "
+
+                        String info = "Received " + currentWindowEventsReceived + " events in " + elapsedTime + " ms; Latency - Avg: "
                                 + decimalFormat.format(localTotalDelay / (double) currentWindowEventsReceived)
-                                + ", Min: " + minLatency.get() + ", Max: " + maxLatency.get());
+                                + ", Min: " + minLatency.get() + ", Max: " + maxLatency.get();
+
+                        log.info(info);
+
+                        new TCPClient("localhost", 6789).sendMsg(
+                                "FEEDBACK FROM CONSUMER : RawDataLatencyAgentCallback : " + info);
+
                         maxLatency.set(0);
                         minLatency.set(Long.MAX_VALUE);
                         totalDelay.addAndGet(-localTotalDelay);
