@@ -30,7 +30,7 @@ public class TCPClient extends Thread {
 //            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 //                    sentence = msg;
 //            sentence = inFromUser.readLine();
-            outToServer.writeBytes(msg + "/n");
+            outToServer.writeBytes(msg + "\n");
 //            modifiedSentence = inFromServer.readLine();
 //                        System.out.println("FROM SERVER: " + modifiedSentence);
             clientSocket.close();

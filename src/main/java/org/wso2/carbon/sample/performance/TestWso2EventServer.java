@@ -42,6 +42,7 @@ import org.wso2.carbon.sample.performance.feedback.SiddhiHandler;
 import org.wso2.carbon.sample.performance.feedback.TCPClient;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import java.awt.*;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -52,6 +53,7 @@ public class TestWso2EventServer {
     private static final TestWso2EventServer testServer = new TestWso2EventServer();
     private static Log log = LogFactory.getLog(TestWso2EventServer.class);
     private static TCPClient tcpClient;
+    private static SiddhiHandler siddhiHandler = new SiddhiHandler();
     private ThriftDataReceiver thriftDataReceiver;
     private BinaryDataReceiver binaryDataReceiver;
     private AtomicLong counter = new AtomicLong(0);
@@ -82,6 +84,7 @@ public class TestWso2EventServer {
                 } catch (DataBridgeException e) {
                     log.error("Error");
                 } catch (StreamDefinitionStoreException e) {
+                    e.printStackTrace();
                 }
                 synchronized (testServer) {
                     try {
@@ -93,8 +96,6 @@ public class TestWso2EventServer {
             }
         }).start();
 
-//      test siddhi queries
-        new SiddhiHandler().start();
     }
 
 
@@ -155,6 +156,10 @@ public class TestWso2EventServer {
             thriftDataReceiver.start(host);
         }
         log.info("Test Server Started");
+
+
+//      send initial feedback to server
+//        siddhiHandler.sendFeedBack("org.wso2.event.sensor.stream_1.0.0");
     }
 
     public void stop() {
@@ -196,7 +201,10 @@ public class TestWso2EventServer {
             try {
                 Thread.currentThread().sleep(1000);
             } catch (Exception e) {
-
+                e.printStackTrace();
+            }
+            for (Event e : eventList) {
+                siddhiHandler.sendEvent(e.getPayloadData());
             }
             long currentTime = System.currentTimeMillis();
             long currentBatchTotalDelay = 0;
@@ -228,6 +236,9 @@ public class TestWso2EventServer {
 
                     new TCPClient(Constants.TCP_HOST, Constants.TCP_PORT).sendMsg(
                             "FEEDBACK FROM CONSUMER : ThroughputAgentCallback : " + info);
+
+                    new TCPClient(Constants.TCP_HOST, Constants.TCP_PORT).sendMsg(
+                            "RECEIVED_FEEDBACK:" + currentWindowEventsReceived);
 
                     totalDelay.addAndGet(-localTotalDelay);
                     calcInProgress.set(false);
