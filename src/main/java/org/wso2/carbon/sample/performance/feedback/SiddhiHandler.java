@@ -29,19 +29,11 @@ public class SiddhiHandler {
 
     private void createExecutionPlan() {
 
-//        String definition = "@config(async = 'true') " +
-//                "define stream cseEventStream (symbol string, price float, volume long);";
-
         String definition = "@config(async = 'true') " +
-                "define stream inputStream (humidity float, sensorValue double);";
+                "define stream inputStream (humidity float, sensorValue double, timestamp long);";
 
-
-//        String query = "@info(name = 'query1') from cseEventStream#window.timeBatch(500)  " +
-//                "select symbol, sum(price) as price, sum(volume) as volume group by symbol " +
-//                "insert into outputStream ;";
-
-        String query = "@info(name = 'query1') from inputStream#window.timeBatch(500)  " +
-                "select avg(humidity) as avgHumidity " +
+        String query = "@info(name = 'query1') from inputStream#window.timeBatch(1000)  " +
+                "select avg(humidity) as avgHumidity, avg(timestamp) as timestamp " +
                 "insert into outputStream ;";
 
         executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(definition + query);
@@ -49,12 +41,16 @@ public class SiddhiHandler {
         executionPlanRuntime.addCallback("outputStream", new StreamCallback() {
                     @Override
                     public void receive(Event[] events) {
-                        System.out.println("event received..........................");
-                        EventPrinter.print(events);
+//                        System.out.println("event received..........................");
+//                        EventPrinter.print(events);
 //                        for (Event event : events) {
 ////                            new TCPClient(Constants.TCP_HOST, Constants.TCP_PORT).sendMsg(
 ////                                    "FEEDBACK FROM CONSUMER : SiddhiHandler : " + event.toString());
 //                        }
+                        for(Event e : events) {
+                            System.out.println("Event: avgHumidity:" + e.getData()[0]
+                                    + ", timestamp : " + e.getData()[1]);
+                        }
                     }
                 }
         );

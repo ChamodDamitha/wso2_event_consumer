@@ -182,7 +182,7 @@ public class TestWso2EventServer {
         private int elapsedCount = 0;
 
         public ThroughputAgentCallback(int elapsedCount) {
-            this.elapsedCount = elapsedCount;
+            this.elapsedCount = 10000;
         }
 
         public void definedStream(StreamDefinition streamDefinition,
@@ -199,12 +199,19 @@ public class TestWso2EventServer {
         public void receive(List<Event> eventList, Credentials credentials) {
 
             try {
-                Thread.currentThread().sleep(1000);
+//                Thread.currentThread().sleep(1000);
+                Thread.currentThread().sleep(300);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            Object[] data;
             for (Event e : eventList) {
-                siddhiHandler.sendEvent(e.getPayloadData());
+                data = new Object[e.getPayloadData().length + 1];
+                for (int i = 0; i < data.length - 1; i++) {
+                    data[i] = e.getPayloadData()[i];
+                }
+                data[data.length - 1] = e.getMetaData()[0];
+                siddhiHandler.sendEvent(data);
             }
             long currentTime = System.currentTimeMillis();
             long currentBatchTotalDelay = 0;
