@@ -7,7 +7,8 @@
     {
       "name": "timestamp",
       "type": "LONG"
-    },
+    }
+    ,
     {
       "name": "isPowerSaverEnabled",
       "type": "BOOL"
@@ -35,7 +36,8 @@
     {
       "name": "humidity",
       "type": "FLOAT"
-    },
+    }
+  ,
     {
       "name": "sensorValue",
       "type": "DOUBLE"

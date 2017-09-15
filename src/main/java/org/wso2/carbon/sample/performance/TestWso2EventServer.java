@@ -40,6 +40,7 @@ import org.wso2.carbon.databridge.receiver.thrift.ThriftDataReceiver;
 import org.wso2.carbon.sample.performance.feedback.Constants;
 import org.wso2.carbon.sample.performance.feedback.SiddhiHandler;
 import org.wso2.carbon.sample.performance.feedback.TCPClient;
+import org.wso2.carbon.sample.performance.feedback.TCPServer;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.awt.*;
@@ -96,6 +97,9 @@ public class TestWso2EventServer {
             }
         }).start();
 
+//      start Punctuation server
+        TCPServer tcpServer = new TCPServer(6790);
+        tcpServer.start();
     }
 
 
@@ -206,17 +210,21 @@ public class TestWso2EventServer {
             }
             Object[] data;
             for (Event e : eventList) {
-                data = new Object[e.getPayloadData().length + 1];
-                for (int i = 0; i < data.length - 1; i++) {
+                data = new Object[e.getPayloadData().length + 3];
+                for (int i = 0; i < data.length - 3; i++) {
                     data[i] = e.getPayloadData()[i];
                 }
-                data[data.length - 1] = e.getMetaData()[0];
+                data[data.length - 3] = e.getMetaData()[0];
+                data[data.length - 2] = e.getMetaData()[2];
+                data[data.length - 1] = 1; // punctuation
+//                System.out.println(System.currentTimeMillis() - ((long)data[data.length - 1])); //TODO : testing.........
                 siddhiHandler.sendEvent(data);
             }
             long currentTime = System.currentTimeMillis();
             long currentBatchTotalDelay = 0;
             for (Event event : eventList) {
                 currentBatchTotalDelay = currentBatchTotalDelay + (currentTime - event.getTimeStamp());
+//                System.out.println("currentTime - event.getTimeStamp() : " + (currentTime - event.getTimeStamp()));
             }
             /** Following section should ideally be atomic **/
             long localTotalDelay = totalDelay.addAndGet(currentBatchTotalDelay);

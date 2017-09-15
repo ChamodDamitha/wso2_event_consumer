@@ -59,6 +59,9 @@
             <include name="disruptor_3.3.2.wso2v2.jar"/>
             <include name="antlr-runtime_3.2.0.wso2v1.jar"/>
             <include name="org.antlr.antlr4-runtime-osgi_4.5.0.jar"/>
+            <include name="HdrHistogram-2.1.4.jar"/>
+            <include name="log4j-1.2.17.jar"/>
+            <include name="siddhi-extension-customWindow-3.1.0-SNAPSHOT.jar"/>
         </fileset>
     </path>
 
