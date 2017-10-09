@@ -12,7 +12,7 @@ import java.net.Socket;
 public class TCPSessionWriter extends Thread {
 
     private Socket connectionSocket;
-    private static SiddhiHandler siddhiHandler = new SiddhiHandler();
+    private static SiddhiHandler siddhiHandler = SiddhiHandler.getInstance();
 
     public TCPSessionWriter(Socket connectionSocket) {
         this.connectionSocket = connectionSocket;
@@ -29,14 +29,18 @@ public class TCPSessionWriter extends Thread {
 
             clientSentence = inFromClient.readLine();
 
-            int punctuation = Integer.valueOf(clientSentence.split(":")[1].trim());
+            String[] divStr = clientSentence.split(":");
+
+            int punctuation = Integer.valueOf(divStr[1].split(",")[0].trim());
+            long timestamp = Long.valueOf(divStr[2].trim());
 
             if (punctuation == -1) {
-                Object[] data = {0.0f, 0.0, System.currentTimeMillis(), 0, punctuation};
+                Object[] data = {0, 0.0, timestamp, 0, punctuation};
                 siddhiHandler.sendEvent(data);
             }
 
-            System.out.println("Received Punctuation : " + punctuation);
+//            System.out.println("Received Punctuation : " + punctuation);
+//            System.out.println("Received Timestamp : " + timestamp);
 //            FeedbackProcessor.getInstance().handleFeedback(clientSentence);
 
 //          String capitalizedSentence = clientSentence.toUpperCase() + '\n';

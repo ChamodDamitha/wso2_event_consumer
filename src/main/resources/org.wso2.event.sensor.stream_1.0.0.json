@@ -35,7 +35,7 @@
   "payloadData": [
     {
       "name": "humidity",
-      "type": "FLOAT"
+      "type": "INT"
     }
   ,
     {

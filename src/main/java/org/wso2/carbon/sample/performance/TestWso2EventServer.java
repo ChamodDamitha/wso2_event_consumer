@@ -54,7 +54,7 @@ public class TestWso2EventServer {
     private static final TestWso2EventServer testServer = new TestWso2EventServer();
     private static Log log = LogFactory.getLog(TestWso2EventServer.class);
     private static TCPClient tcpClient;
-    private static SiddhiHandler siddhiHandler = new SiddhiHandler();
+    private static SiddhiHandler siddhiHandler = SiddhiHandler.getInstance();
     private ThriftDataReceiver thriftDataReceiver;
     private BinaryDataReceiver binaryDataReceiver;
     private AtomicLong counter = new AtomicLong(0);
@@ -177,6 +177,9 @@ public class TestWso2EventServer {
     }
 
     class ThroughputAgentCallback implements AgentCallback {
+        int eventCount = 0;
+        long startTime;
+
         private AtomicLong totalDelay = new AtomicLong(0);
         private AtomicLong lastIndex = new AtomicLong(0);
         private AtomicLong lastCounter = new AtomicLong(0);
@@ -186,7 +189,7 @@ public class TestWso2EventServer {
         private int elapsedCount = 0;
 
         public ThroughputAgentCallback(int elapsedCount) {
-            this.elapsedCount = 10000;
+            this.elapsedCount = 100000;
         }
 
         public void definedStream(StreamDefinition streamDefinition,
@@ -201,24 +204,36 @@ public class TestWso2EventServer {
 
         @Override
         public void receive(List<Event> eventList, Credentials credentials) {
-
             try {
-//                Thread.currentThread().sleep(1000);
-                Thread.currentThread().sleep(300);
+//                Thread.currentThread().sleep(300);
+                Thread.currentThread().sleep(1);
             } catch (Exception e) {
                 e.printStackTrace();
             }
             Object[] data;
             for (Event e : eventList) {
-                data = new Object[e.getPayloadData().length + 3];
-                for (int i = 0; i < data.length - 3; i++) {
-                    data[i] = e.getPayloadData()[i];
+                if ((int) e.getMetaData()[2] == -1) {
+//                    try {
+//                        Thread.currentThread().sleep(2000);
+//                    } catch (Exception exeption) {
+//                        exeption.printStackTrace();
+//                    }
+                } else {
+                    data = new Object[e.getPayloadData().length + 3];
+                    for (int i = 0; i < data.length - 3; i++) {
+                        data[i] = e.getPayloadData()[i];
+                    }
+                    data[data.length - 3] = e.getMetaData()[0];
+                    data[data.length - 2] = e.getMetaData()[2];
+                    data[data.length - 1] = 1; // punctuation
+                    eventCount++;
+
+//                    System.out.println("eventCount : " + eventCount);
+//                    System.out.println("time_before_query : "
+//                    +(System.currentTimeMillis() - ((long) data[2]))); //TODO : testing.........
+//                    System.out.println("time_elapsed : " + (System.currentTimeMillis() - startTime));
+                    siddhiHandler.sendEvent(data);
                 }
-                data[data.length - 3] = e.getMetaData()[0];
-                data[data.length - 2] = e.getMetaData()[2];
-                data[data.length - 1] = 1; // punctuation
-//                System.out.println(System.currentTimeMillis() - ((long)data[data.length - 1])); //TODO : testing.........
-                siddhiHandler.sendEvent(data);
             }
             long currentTime = System.currentTimeMillis();
             long currentBatchTotalDelay = 0;

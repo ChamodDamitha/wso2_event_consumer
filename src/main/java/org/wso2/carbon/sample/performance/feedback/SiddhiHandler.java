@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
  */
 public class SiddhiHandler {
     private static final Logger log = Logger.getLogger(SiddhiHandler.class);
-    private static final int RECORD_WINDOW = 120; //This is the number of events to record.
+    private static final int RECORD_WINDOW = 50; //This is the number of events to record.
     private static final Histogram histogram = new Histogram(2);
     private static final Histogram histogram2 = new Histogram(2);
     private static long firstTupleTime = -1;
@@ -48,8 +48,18 @@ public class SiddhiHandler {
     private String eventStreamName;
     private InputHandler inputHandler;
 
+
+    private static SiddhiHandler siddhiHandler = null;
+
+    public static SiddhiHandler getInstance() {
+        if (siddhiHandler == null) {
+            siddhiHandler = new SiddhiHandler();
+        }
+        return siddhiHandler;
+    }
+
     public SiddhiHandler() {
-        totalExperimentDuration = Long.parseLong("10") * 60000;
+        totalExperimentDuration = Long.parseLong("15") * 60000;
         warmupPeriod = 10000;
 //        warmupPeriod = Long.parseLong("1") * 60000;
 
@@ -276,9 +286,9 @@ public class SiddhiHandler {
     private void createExecutionPlan() {
 
         String definition = "@config(async = 'true') " +
-                "define stream inputStream (humidity float, sensorValue double, timestamp long, sensorId int, meta_punctuation int);";
+                "define stream inputStream (humidity int, sensorValue double, timestamp long, sensorId int, meta_punctuation int);";
 
-        String query = "@info(name = 'query1') from inputStream#window.custom:customWindow(100, meta_punctuation)  " +
+        String query = "@info(name = 'query1') from inputStream#window.custom:customLengthBatch(1000, meta_punctuation, timestamp) " +
                 "select avg(humidity) as avgHumidity, count(sensorId) as count, timestamp " +
                 "insert into outputStream ;";
 
@@ -294,12 +304,17 @@ public class SiddhiHandler {
 ////                                    "FEEDBACK FROM CONSUMER : SiddhiHandler : " + event.toString());
 //                        }
                 for (Event evt : events) {
-                    System.out.println("Event: avgHumidity : " + evt.getData()[0]
-                            + ", count : " + evt.getData()[1]
-                            + ", timestamp : " + evt.getData()[2]);
+                    long currentTime = System.currentTimeMillis();
+//                    if (eventCountTotal % 400 == 0) {
+                        System.out.println("Event: avgHumidity : " + evt.getData()[0]
+                                + ", count : " + evt.getData()[1]
+                                + ", timestamp : " + evt.getData()[2]
+                        );
+                        System.out.println("eventCount : " + eventCountTotal);
+//                    }
 
                     ////////////////////////////////////////////////////////////////////////////////////
-                    long currentTime = System.currentTimeMillis();
+
                     histogram.recordValue(timeSpent);
                     histogram2.recordValue(timeSpent);
 
@@ -313,7 +328,7 @@ public class SiddhiHandler {
                         eventCount++;
                         eventCountTotal++;
                         timeSpent += (currentTime - iijTimestamp);
-                        System.out.println("Time diff in Siddhi Handler: " + (currentTime - iijTimestamp));//TODO : testing..........
+//                        System.out.println("Time diff in Siddhi Handler: " + (currentTime - iijTimestamp));//TODO : testing..........
 
                         if (eventCount % RECORD_WINDOW == 0) {
                             totalTimeSpent += timeSpent;
@@ -466,7 +481,7 @@ public class SiddhiHandler {
         }).start();
     }
 
-    public void sendEvent(Object[] event) {
+    public synchronized void sendEvent(Object[] event) {
         new Thread(new Runnable() {
             @Override
             public void run() {
