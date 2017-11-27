@@ -6,4 +6,5 @@ package org.wso2.carbon.sample.performance.feedback;
 public class Constants {
     public static final int TCP_PORT = 6789;
     public static final String TCP_HOST = "localhost";
+    public static final long THRESHOLD_INTERVAL = 0L;
 }

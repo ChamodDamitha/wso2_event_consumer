@@ -7,15 +7,26 @@ public class TCPClient extends Thread {
     private String host;
     private int port;
     private String msg;
+    private DataOutputStream outToServer;
+    private Socket clientSocket;
 
     public TCPClient(String host, int port) {
         this.host = host;
         this.port = port;
+        try {
+            clientSocket = new Socket(this.host, this.port);
+            outToServer = new DataOutputStream(clientSocket.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void sendMsg(String msg) {
-        this.msg = msg;
-        this.start();
+        try {
+            outToServer.writeBytes(msg + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

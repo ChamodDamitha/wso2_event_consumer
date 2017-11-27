@@ -45,6 +45,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 
 import java.awt.*;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -179,7 +180,6 @@ public class TestWso2EventServer {
     class ThroughputAgentCallback implements AgentCallback {
         int eventCount = 0;
         long startTime;
-
         private AtomicLong totalDelay = new AtomicLong(0);
         private AtomicLong lastIndex = new AtomicLong(0);
         private AtomicLong lastCounter = new AtomicLong(0);
@@ -187,6 +187,9 @@ public class TestWso2EventServer {
         private AtomicBoolean calcInProgress = new AtomicBoolean(false);
         private DecimalFormat decimalFormat = new DecimalFormat("#.##");
         private int elapsedCount = 0;
+        private long prevEventTimestamp = 0;
+        private int droppedOutOFOrder = 0;
+
 
         public ThroughputAgentCallback(int elapsedCount) {
             this.elapsedCount = 100000;
@@ -212,22 +215,47 @@ public class TestWso2EventServer {
             }
             Object[] data;
             for (Event e : eventList) {
+
+//          send out of order threshold interval to client
+                if (eventCount == 0) {
+                    new TCPClient(Constants.TCP_HOST, Constants.TCP_PORT).sendMsg("THRESHOLD_INTERVAL : " +
+                            Constants.THRESHOLD_INTERVAL);
+                }
+
                 if ((int) e.getMetaData()[2] == -1) {
-//                    try {
-//                        Thread.currentThread().sleep(2000);
-//                    } catch (Exception exeption) {
-//                        exeption.printStackTrace();
-//                    }
+                    try {
+                        Thread.currentThread().sleep(900);
+                    } catch (Exception exeption) {
+                        exeption.printStackTrace();
+                    }
                 } else {
                     data = new Object[e.getPayloadData().length + 3];
                     for (int i = 0; i < data.length - 3; i++) {
                         data[i] = e.getPayloadData()[i];
                     }
-                    data[data.length - 3] = e.getMetaData()[0];
+                    long eventTimestamp = (long) e.getMetaData()[0];
+//                    System.out.println("eventTimestamp : " + eventTimestamp);//todo
+
+                    data[data.length - 3] = eventTimestamp;
                     data[data.length - 2] = e.getMetaData()[2];
-                    data[data.length - 1] = 1; // punctuation
+
+//                    System.out.println("sensorID : " + data[data.length - 2]);//TODO
+
+                    data[data.length - 1] = -1; // punctuation
+
                     eventCount++;
 
+//                    System.out.println("timestamp diff : " + (eventTimestamp - prevEventTimestamp));//todo
+//                    System.out.println("(eventTimestamp - (prevEventTimestamp - 1000)) : " + (eventTimestamp - (prevEventTimestamp - 1000)));//todo
+//                      drop out-of-order
+////                    if (prevEventTimestamp - THRESHOLD_INTERVAL <= eventTimestamp) {
+////                        siddhiHandler.sendEvent(data);
+////                    } else {
+////                        droppedOutOFOrder++;
+////                    }
+//
+//                    prevEventTimestamp = eventTimestamp;
+//                    System.out.println("eventCount : " + eventCount + " droppedOutOFOrder : " + droppedOutOFOrder);//todo
 //                    System.out.println("eventCount : " + eventCount);
 //                    System.out.println("time_before_query : "
 //                    +(System.currentTimeMillis() - ((long) data[2]))); //TODO : testing.........
@@ -235,6 +263,7 @@ public class TestWso2EventServer {
                     siddhiHandler.sendEvent(data);
                 }
             }
+
             long currentTime = System.currentTimeMillis();
             long currentBatchTotalDelay = 0;
             for (Event event : eventList) {
@@ -274,6 +303,7 @@ public class TestWso2EventServer {
                     calcInProgress.set(false);
                 }
             }
+//            System.out.println("Events received : " + eventCount + ", dropped out-of-order : " + droppedOutOFOrder);//todo
         }
     }
 

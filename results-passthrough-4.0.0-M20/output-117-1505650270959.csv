@@ -1,3 +1,0 @@
-Id, Throughput in this window (events/second), Entire throughput for the run (events/second), Total elapsed time(s), Average latency per event (ms), Entire Average latency per event (ms), Total number of events received (non-atomic),AVG latency from start (90),AVG latency from start(95), AVG latency from start (99),AVG latency in this window(90),AVG latency in this window(95),AVG latency in this window(99)
-1,692,692,28.88,1224.04655,1224.04655,20000,20447231,22544383,24117247,20447231,22544383,24117247
-2,911,787,50.824,2381.8625,1802.954525,40000,38273023,42991615,46923775,42991615,45350911,47185919

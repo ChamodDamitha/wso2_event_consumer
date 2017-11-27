@@ -32,15 +32,16 @@ public class TCPSessionWriter extends Thread {
             String[] divStr = clientSentence.split(":");
 
             int punctuation = Integer.valueOf(divStr[1].split(",")[0].trim());
-            long timestamp = Long.valueOf(divStr[2].trim());
+            int counter = Integer.valueOf(divStr[2].trim());
 
-            if (punctuation == -1) {
-                Object[] data = {0, 0.0, timestamp, 0, punctuation};
+
+            if (punctuation >= 0) {
+                Object[] data = {0, 0.0, 0, counter, punctuation};
                 siddhiHandler.sendEvent(data);
             }
 
-//            System.out.println("Received Punctuation : " + punctuation);
-//            System.out.println("Received Timestamp : " + timestamp);
+//            System.out.println("Received Punctuation : " + (1000 -punctuation));//todo
+//            System.out.println("Received Timestamp : " + counter);
 //            FeedbackProcessor.getInstance().handleFeedback(clientSentence);
 
 //          String capitalizedSentence = clientSentence.toUpperCase() + '\n';
