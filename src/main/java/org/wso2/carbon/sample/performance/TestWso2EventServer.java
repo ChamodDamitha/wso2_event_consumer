@@ -245,7 +245,7 @@ public class TestWso2EventServer {
 
                     eventCount++;
 
-//                    System.out.println("timestamp diff : " + (eventTimestamp - prevEventTimestamp));//todo
+                    //                    System.out.println("timestamp diff : " + (eventTimestamp - prevEventTimestamp));//todo
 //                    System.out.println("(eventTimestamp - (prevEventTimestamp - 1000)) : " + (eventTimestamp - (prevEventTimestamp - 1000)));//todo
 //                      drop out-of-order
 ////                    if (prevEventTimestamp - THRESHOLD_INTERVAL <= eventTimestamp) {

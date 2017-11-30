@@ -330,19 +330,20 @@ public class SiddhiHandler {
 //                        }
                 for (Event evt : events) {
                     if (eventCountTotal == 0) {
-//                        feedbackTcpClient = new TCPClient(Constants.TCP_HOST, Constants.TCP_PORT);
+                        feedbackTcpClient = new TCPClient(Constants.TCP_HOST, Constants.TCP_PORT);
                         startTime = System.currentTimeMillis();
                     }
                     long currentTime = System.currentTimeMillis();
+
 //                    if (eventCountTotal % 100 == 0) {
                     feedbackTcpClient.sendMsg("SIDDHI_QUERY_FEEDBACK : EVENT_COUNT : " + evt.getData()[0]
-                            + " : AVG : " + evt.getData()[1]);
-                    if (eventCountTotal % 100 == 0) {
+                            + " : MAX : " + evt.getData()[1]);
+//                    if (eventCountTotal % 100 == 0) {
                         System.out.println("Event: count : " + evt.getData()[0]
                                 + ", maxHumidity : " + evt.getData()[1]
                                 + ", timeSpent : " + (currentTime - startTime)
                         );
-                    }
+//                    }
 //                    feedbackTcpClient.sendMsg("TIME_BATCH_EXPIRE_FEEDBACK : EXPIRED");
 //                        eventCount += (long)evt.getData()[1];
 //                        System.out.println("eventCount : " + eventCountTotal + ", totalEventCount : " + eventCount);
